@@ -1251,7 +1251,7 @@
                     cumLoss: startWeight - currentWeight
                 });
 
-                currentWeight = Math.max(currentWeight - weeklyLoss, GOAL_WEIGHT);
+                currentWeight = currentWeight - weeklyLoss;
             }
 
             return forecast;
