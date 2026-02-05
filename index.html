@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cut Tracker">
+    <meta name="theme-color" content="#09090b">
+    <title>Cut Tracker</title>
+
+    <!-- Inline manifest for PWA -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkN1dCBUcmFja2VyIiwKICAic2hvcnRfbmFtZSI6ICJDdXQiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzA5MDkwYiIsCiAgInRoZW1lX2NvbG9yIjogIiMwOTA5MGIiLAogICJpY29ucyI6IFtdCn0=">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --border: #3f3f46;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.2);
+            --amber: #f59e0b;
+            --amber-dim: rgba(245, 158, 11, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0 16px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        header p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav button {
+            flex: 1;
+            padding: 12px 8px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .nav button.active {
+            color: var(--green);
+        }
+
+        .nav button span.icon {
+            font-size: 20px;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        /* Summary Card */
+        .summary-card {
+            background: linear-gradient(135deg, var(--green-dim), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card .row {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .summary-card .divider {
+            width: 1px;
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .summary-card .label {
+            font-size: 11px;
+            color: var(--green);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Inputs */
+        input[type="number"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 18px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--green);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea {
+            resize: none;
+            height: 80px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        /* Sets Row */
+        .sets-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .sets-row .set-input {
+            flex: 1;
+        }
+
+        .sets-row label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .sets-row input {
+            text-align: center;
+        }
+
+        /* Counter */
+        .counter {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        .counter button {
+            width: 56px;
+            height: 56px;
+            background: var(--border);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .counter button:active {
+            background: var(--text-muted);
+        }
+
+        .counter .value-display {
+            text-align: center;
+        }
+
+        .counter .value-display .number {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .counter .value-display .meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Checkbox Items */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .checkbox-item.checked {
+            background: var(--green-dim);
+            border-color: var(--green);
+        }
+
+        .checkbox-item .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checkbox-item .check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item.checked .check {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .checkbox-item.checked .check::after {
+            content: '✓';
+            color: black;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .checkbox-item .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Energy Scale */
+        .energy-scale {
+            display: flex;
+            gap: 8px;
+        }
+
+        .energy-scale button {
+            flex: 1;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .energy-scale button.selected {
+            background: var(--green);
+            border-color: var(--green);
+            color: black;
+        }
+
+        /* Save Button */
+        .save-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--green);
+            border: none;
+            border-radius: 12px;
+            color: black;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .save-btn:active {
+            opacity: 0.8;
+        }
+
+        /* Stat Grid */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .stat-box .value.positive {
+            color: var(--green);
+        }
+
+        .stat-box .value.negative {
+            color: #ef4444;
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* Charts */
+        .chart-container {
+            margin-top: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 16px;
+            height: 140px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+
+        .chart-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chart-bar .bar {
+            width: 12px;
+            background: var(--green);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+        }
+
+        .chart-bar .bar.amber {
+            background: var(--amber);
+        }
+
+        .chart-bar .label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Forecast specific */
+        .toggle-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-row button {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-row button.active {
+            background: var(--green);
+            color: black;
+        }
+
+        .slider-container {
+            padding: 8px 0;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .slider-labels .current {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            appearance: none;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--green);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Forecast chart */
+        .forecast-chart {
+            position: relative;
+            height: 180px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .forecast-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .goal-line {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            border-top: 2px dashed var(--amber);
+            opacity: 0.5;
+        }
+
+        .goal-label {
+            position: absolute;
+            right: 16px;
+            font-size: 11px;
+            color: var(--amber);
+            transform: translateY(-100%);
+            margin-top: -4px;
+        }
+
+        .chart-x-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Table */
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .table-header span:not(:first-child) {
+            text-align: right;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            font-size: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(63, 63, 70, 0.5);
+        }
+
+        .table-row span {
+            color: var(--text-secondary);
+        }
+
+        .table-row span:not(:first-child) {
+            text-align: right;
+        }
+
+        .table-row .weight {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .table-row .loss {
+            color: var(--green);
+        }
+
+        /* History Items */
+        .history-item {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .history-item .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .history-item .date {
+            font-size: 14px;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .history-item .macros {
+            text-align: right;
+        }
+
+        .history-item .macros .cals {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .history-item .macros .protein {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-item .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .history-item .stats strong {
+            color: var(--text-primary);
+        }
+
+        /* Export buttons */
+        .export-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .export-btns button {
+            flex: 1;
+            padding: 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .export-btns button:active {
+            background: var(--border);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--green);
+            color: black;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Goal indicator */
+        .goal-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .goal-indicator .label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .goal-indicator .status {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .goal-indicator .status.success {
+            color: var(--green);
+        }
+
+        .goal-indicator .status.pending {
+            color: var(--amber);
+        }
+
+        /* Section label */
+        .section-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 0;
+        }
+
+        /* Helper text */
+        .helper-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        /* Hidden file input */
+        .hidden {
+            display: none;
+        }
+
+        /* Lock Screen */
+        .lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lock-screen.hidden {
+            display: none;
+        }
+
+        .lock-container {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .lock-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .lock-container h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .lock-container p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: transparent;
+            transition: all 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .pin-error {
+            font-size: 14px;
+            color: #ef4444;
+            height: 20px;
+            margin-bottom: 16px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .pin-error.show {
+            opacity: 1;
+        }
+
+        .pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .pin-pad button {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 28px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin: 0 auto;
+        }
+
+        .pin-pad button:active {
+            background: var(--bg-tertiary);
+            transform: scale(0.95);
+        }
+
+        .pin-pad button.empty {
+            visibility: hidden;
+        }
+
+        .pin-pad button.del {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- PIN LOCK SCREEN -->
+    <div id="lock-screen" class="lock-screen">
+        <div class="lock-container">
+            <div class="lock-icon">🔒</div>
+            <h1>Cut Tracker</h1>
+            <p>Enter PIN to continue</p>
+            <div class="pin-display" id="pin-display">
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+            </div>
+            <div class="pin-error" id="pin-error">Incorrect PIN</div>
+            <div class="pin-pad">
+                <button data-num="1">1</button>
+                <button data-num="2">2</button>
+                <button data-num="3">3</button>
+                <button data-num="4">4</button>
+                <button data-num="5">5</button>
+                <button data-num="6">6</button>
+                <button data-num="7">7</button>
+                <button data-num="8">8</button>
+                <button data-num="9">9</button>
+                <button data-num="" class="empty"></button>
+                <button data-num="0">0</button>
+                <button data-num="del" class="del">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" style="display:none;">
+    <div class="container">
+        <!-- LOG SCREEN -->
+        <div id="log-screen" class="screen active">
+            <header>
+                <h1>Daily Log</h1>
+                <p id="today-date"></p>
+            </header>
+
+            <div class="summary-card">
+                <div class="row">
+                    <div>
+                        <div class="value" id="today-cals">0</div>
+                        <div class="label">Calories</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div>
+                        <div class="value" id="today-protein">0g</div>
+                        <div class="label">Protein</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Weight</h2>
+                <input type="number" id="weight-input" placeholder="132.0" step="0.1" inputmode="decimal">
+            </div>
+
+            <div class="card">
+                <h2>Push-ups</h2>
+                <div class="sets-row">
+                    <div class="set-input">
+                        <label>Set 1</label>
+                        <input type="number" id="pushups-1" placeholder="10" inputmode="numeric">
+                    </div>
+                    <div class="set-input">
+                        <label>Set 2</label>
+                        <input type="number" id="pushups-2" placeholder="10" inputmode="numeric">
+                    </div>
+                    <div class="set-input">
+                        <label>Set 3</label>
+                        <input type="number" id="pushups-3" placeholder="10" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Squats</h2>
+                <div class="sets-row">
+                    <div class="set-input">
+                        <label>Set 1</label>
+                        <input type="number" id="squats-1" placeholder="25" inputmode="numeric">
+                    </div>
+                    <div class="set-input">
+                        <label>Set 2</label>
+                        <input type="number" id="squats-2" placeholder="25" inputmode="numeric">
+                    </div>
+                    <div class="set-input">
+                        <label>Set 3</label>
+                        <input type="number" id="squats-3" placeholder="25" inputmode="numeric">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Nutrition</h2>
+
+                <div class="section-label">Chicken Wraps</div>
+                <div class="counter">
+                    <button id="wraps-minus">−</button>
+                    <div class="value-display">
+                        <div class="number" id="wraps-count">0</div>
+                        <div class="meta" id="wraps-meta">0 cal · 0g protein</div>
+                    </div>
+                    <button id="wraps-plus">+</button>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="section-label">Protein Add-ons</div>
+                <div id="protein-addons"></div>
+
+                <div class="divider"></div>
+
+                <div class="section-label">Extra Calories</div>
+                <input type="number" id="extra-cals" placeholder="0" inputmode="numeric">
+                <p class="helper-text">Ate something off-plan? Just add the cals here.</p>
+            </div>
+
+            <div class="card">
+                <h2>Energy (1-5)</h2>
+                <div class="energy-scale" id="energy-scale"></div>
+            </div>
+
+            <div class="card">
+                <h2>Notes (optional)</h2>
+                <textarea id="notes" placeholder="How'd today go?"></textarea>
+            </div>
+
+            <button class="save-btn" id="save-btn">Save Today's Log</button>
+        </div>
+
+        <!-- DASHBOARD SCREEN -->
+        <div id="dashboard-screen" class="screen">
+            <header>
+                <h1>Dashboard</h1>
+                <p>Your progress at a glance</p>
+            </header>
+
+            <div class="card">
+                <h2>Weight</h2>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="value" id="current-weight">--</div>
+                        <div class="label">Current</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="avg-weight">--</div>
+                        <div class="label">7-Day Avg</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value positive" id="total-lost">--</div>
+                        <div class="label">Total Lost</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value positive" id="week-change">--</div>
+                        <div class="label">This Week</div>
+                    </div>
+                </div>
+                <div class="chart-container" id="weight-chart"></div>
+            </div>
+
+            <div class="card">
+                <h2>Nutrition (7-Day Avg)</h2>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="value" id="avg-cals">--</div>
+                        <div class="label">Avg Calories</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="avg-protein">--</div>
+                        <div class="label">Avg Protein</div>
+                    </div>
+                </div>
+                <div class="chart-container" id="cal-chart"></div>
+                <p class="helper-text" style="text-align:center;margin-top:12px;">Target: 1,600–1,900 cal</p>
+            </div>
+
+            <div class="card">
+                <h2>Push-ups</h2>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="value" id="last-pushups">--</div>
+                        <div class="label">Last Session</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="best-pushups">--</div>
+                        <div class="label">Best Total</div>
+                    </div>
+                </div>
+                <div class="chart-container" id="pushups-chart"></div>
+            </div>
+
+            <div class="card">
+                <h2>Consistency</h2>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="value" id="streak">--</div>
+                        <div class="label">Day Streak</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="value" id="total-logs">--</div>
+                        <div class="label">Total Logs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORECAST SCREEN -->
+        <div id="forecast-screen" class="screen">
+            <header>
+                <h1>Forecast</h1>
+                <p>12-week projection</p>
+            </header>
+
+            <div class="card">
+                <h2>Daily Calories</h2>
+                <div class="toggle-row">
+                    <button id="use-avg-btn" class="active">Use My Average (<span id="avg-cal-display">--</span>)</button>
+                    <button id="use-custom-btn">Custom</button>
+                </div>
+                <div class="slider-container hidden" id="slider-container">
+                    <div class="slider-labels">
+                        <span>1,400</span>
+                        <span class="current" id="slider-value">1,750 cal/day</span>
+                        <span>2,200</span>
+                    </div>
+                    <input type="range" id="cal-slider" min="1400" max="2200" step="50" value="1750">
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="row">
+                    <div>
+                        <div class="value" id="forecast-start">132.0</div>
+                        <div class="label">Start</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div>
+                        <div class="value" id="forecast-end">--</div>
+                        <div class="label">Week 12</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div>
+                        <div class="value" id="forecast-loss" style="color:var(--green)">--</div>
+                        <div class="label">Total Loss</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="goal-indicator">
+                <span class="label">Goal: <span id="goal-weight-display">110</span>kg</span>
+                <span class="status" id="goal-status">--</span>
+            </div>
+
+            <div class="card">
+                <h2>Projected Weight</h2>
+                <div class="forecast-chart" id="forecast-chart-container">
+                    <div class="goal-line" id="goal-line"></div>
+                    <span class="goal-label" id="goal-line-label">110kg</span>
+                    <svg id="forecast-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                </div>
+                <div class="chart-x-labels">
+                    <span>Now</span>
+                    <span>Week 6</span>
+                    <span>Week 12</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Weekly Breakdown</h2>
+                <div class="table-header">
+                    <span>Week</span>
+                    <span>Weight</span>
+                    <span>Loss</span>
+                    <span>TDEE</span>
+                </div>
+                <div id="forecast-table"></div>
+            </div>
+        </div>
+
+        <!-- HISTORY SCREEN -->
+        <div id="history-screen" class="screen">
+            <header>
+                <h1>History</h1>
+                <p>All your logged entries</p>
+            </header>
+
+            <div id="history-list"></div>
+
+            <div class="card">
+                <h2>Data Management</h2>
+                <div class="export-btns">
+                    <button id="export-btn">Export JSON</button>
+                    <button id="import-btn">Import JSON</button>
+                </div>
+                <input type="file" id="import-file" class="hidden" accept=".json">
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav">
+        <button class="active" data-screen="log">
+            <span class="icon">📝</span>
+            <span>Log</span>
+        </button>
+        <button data-screen="dashboard">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+        </button>
+        <button data-screen="forecast">
+            <span class="icon">📈</span>
+            <span>Forecast</span>
+        </button>
+        <button data-screen="history">
+            <span class="icon">📅</span>
+            <span>History</span>
+        </button>
+    </nav>
+
+    <div class="toast" id="toast">Saved!</div>
+    </div>
+    </div>
+
+    <script>
+        // ============ CONSTANTS ============
+        const CORRECT_PIN = '6672';
+        const STARTING_WEIGHT = 132;
+        const HEIGHT_CM = 190;
+        const AGE = 25;
+        const GOAL_WEIGHT = 110;
+        const KCAL_PER_KG = 7700;
+        const STORAGE_KEY = 'cuttracker_data';
+
+        const WRAP_MACROS = { calories: 545, protein: 76 };
+        const PROTEIN_ADDONS = [
+            { name: 'Whey Shake', calories: 110, protein: 27 },
+            { name: 'Greek Yogurt', calories: 125, protein: 25 },
+            { name: 'Protein Bar', calories: 190, protein: 10 }
+        ];
+
+        // ============ STATE ============
+        let entries = [];
+        let todayData = {
+            weight: '',
+            pushups: ['', '', ''],
+            squats: ['', '', ''],
+            wraps: 0,
+            proteins: [false, false, false],
+            extraCals: '',
+            energy: null,
+            notes: ''
+        };
+        let useAverage = true;
+        let customCals = 1750;
+
+        // ============ HELPERS ============
+        function getTodayKey() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-GB', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short'
+            });
+        }
+
+        function calcMacros(wraps, proteins, extraCals) {
+            let calories = wraps * WRAP_MACROS.calories + (parseInt(extraCals) || 0);
+            let protein = wraps * WRAP_MACROS.protein;
+            proteins.forEach((checked, i) => {
+                if (checked) {
+                    calories += PROTEIN_ADDONS[i].calories;
+                    protein += PROTEIN_ADDONS[i].protein;
+                }
+            });
+            return { calories, protein };
+        }
+
+        function calcBMR(weightKg) {
+            return 10 * weightKg + 6.25 * HEIGHT_CM - 5 * AGE + 5;
+        }
+
+        function calcTDEE(weightKg) {
+            return calcBMR(weightKg) * 1.2;
+        }
+
+        function generateForecast(startWeight, dailyCals, weeks = 12) {
+            const forecast = [];
+            let currentWeight = startWeight;
+
+            for (let week = 0; week <= weeks; week++) {
+                const tdee = calcTDEE(currentWeight);
+                const weeklyDeficit = (tdee - dailyCals) * 7;
+                const weeklyLoss = weeklyDeficit / KCAL_PER_KG;
+
+                forecast.push({
+                    week,
+                    weight: currentWeight,
+                    tdee,
+                    weeklyLoss: week === 0 ? 0 : weeklyLoss,
+                    cumLoss: startWeight - currentWeight
+                });
+
+                currentWeight = Math.max(currentWeight - weeklyLoss, GOAL_WEIGHT);
+            }
+
+            return forecast;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ============ DATA PERSISTENCE ============
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                entries = JSON.parse(saved);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        }
+
+        function loadTodayEntry() {
+            const todayKey = getTodayKey();
+            const existing = entries.find(e => e.date === todayKey);
+            if (existing) {
+                todayData = { ...existing };
+                delete todayData.date;
+            }
+            updateLogUI();
+        }
+
+        function saveTodayEntry() {
+            const todayKey = getTodayKey();
+            const entry = {
+                date: todayKey,
+                weight: parseFloat(todayData.weight) || null,
+                pushups: todayData.pushups.map(p => parseInt(p) || 0),
+                squats: todayData.squats.map(s => parseInt(s) || 0),
+                wraps: todayData.wraps,
+                proteins: [...todayData.proteins],
+                extraCals: parseInt(todayData.extraCals) || 0,
+                energy: todayData.energy,
+                notes: todayData.notes
+            };
+
+            const existingIndex = entries.findIndex(e => e.date === todayKey);
+            if (existingIndex >= 0) {
+                entries[existingIndex] = entry;
+            } else {
+                entries.push(entry);
+            }
+
+            entries.sort((a, b) => a.date.localeCompare(b.date));
+            saveData();
+            showToast('Saved!');
+        }
+
+        // ============ UI UPDATES ============
+        function updateLogUI() {
+            // Weight
+            document.getElementById('weight-input').value = todayData.weight;
+
+            // Push-ups
+            todayData.pushups.forEach((val, i) => {
+                document.getElementById(`pushups-${i + 1}`).value = val;
+            });
+
+            // Squats
+            todayData.squats.forEach((val, i) => {
+                document.getElementById(`squats-${i + 1}`).value = val;
+            });
+
+            // Wraps
+            document.getElementById('wraps-count').textContent = todayData.wraps;
+            updateWrapsMeta();
+
+            // Protein addons
+            document.querySelectorAll('#protein-addons .checkbox-item').forEach((el, i) => {
+                el.classList.toggle('checked', todayData.proteins[i]);
+            });
+
+            // Extra cals
+            document.getElementById('extra-cals').value = todayData.extraCals;
+
+            // Energy
+            document.querySelectorAll('#energy-scale button').forEach((btn, i) => {
+                btn.classList.toggle('selected', todayData.energy === i + 1);
+            });
+
+            // Notes
+            document.getElementById('notes').value = todayData.notes;
+
+            // Update macros summary
+            updateTodayMacros();
+        }
+
+        function updateWrapsMeta() {
+            const cals = todayData.wraps * WRAP_MACROS.calories;
+            const protein = todayData.wraps * WRAP_MACROS.protein;
+            document.getElementById('wraps-meta').textContent = `${cals} cal · ${protein}g protein`;
+        }
+
+        function updateTodayMacros() {
+            const macros = calcMacros(todayData.wraps, todayData.proteins, todayData.extraCals);
+            document.getElementById('today-cals').textContent = macros.calories;
+            document.getElementById('today-protein').textContent = `${macros.protein}g`;
+        }
+
+        function updateDashboard() {
+            const weightEntries = entries.filter(e => e.weight);
+            const last7 = entries.slice(-7);
+
+            // Current weight
+            const currentWeight = weightEntries.length > 0
+                ? weightEntries[weightEntries.length - 1].weight
+                : STARTING_WEIGHT;
+            document.getElementById('current-weight').textContent = currentWeight.toFixed(1);
+
+            // 7-day average
+            const weightsLast7 = last7.filter(e => e.weight);
+            const avgWeight = weightsLast7.length > 0
+                ? weightsLast7.reduce((sum, e) => sum + e.weight, 0) / weightsLast7.length
+                : currentWeight;
+            document.getElementById('avg-weight').textContent = avgWeight.toFixed(1);
+
+            // Total lost
+            const totalLost = STARTING_WEIGHT - currentWeight;
+            const totalLostEl = document.getElementById('total-lost');
+            totalLostEl.textContent = (totalLost >= 0 ? '-' : '+') + Math.abs(totalLost).toFixed(1);
+            totalLostEl.className = 'value ' + (totalLost >= 0 ? 'positive' : 'negative');
+
+            // Week change
+            const weekAgoWeight = weightEntries.length >= 7
+                ? weightEntries[weightEntries.length - 7].weight
+                : STARTING_WEIGHT;
+            const weekChange = weekAgoWeight - currentWeight;
+            const weekChangeEl = document.getElementById('week-change');
+            weekChangeEl.textContent = (weekChange >= 0 ? '-' : '+') + Math.abs(weekChange).toFixed(1);
+            weekChangeEl.className = 'value ' + (weekChange >= 0 ? 'positive' : 'negative');
+
+            // Nutrition averages
+            const avgCals = last7.length > 0
+                ? Math.round(last7.reduce((sum, e) => sum + calcMacros(e.wraps || 0, e.proteins || [false,false,false], e.extraCals || 0).calories, 0) / last7.length)
+                : 0;
+            const avgProtein = last7.length > 0
+                ? Math.round(last7.reduce((sum, e) => sum + calcMacros(e.wraps || 0, e.proteins || [false,false,false], e.extraCals || 0).protein, 0) / last7.length)
+                : 0;
+            document.getElementById('avg-cals').textContent = avgCals;
+            document.getElementById('avg-protein').textContent = `${avgProtein}g`;
+
+            // Push-ups
+            const pushupEntries = entries.filter(e => e.pushups && e.pushups.some(p => p > 0));
+            if (pushupEntries.length > 0) {
+                const lastTotal = pushupEntries[pushupEntries.length - 1].pushups.reduce((a, b) => a + b, 0);
+                const bestTotal = Math.max(...pushupEntries.map(e => e.pushups.reduce((a, b) => a + b, 0)));
+                document.getElementById('last-pushups').textContent = lastTotal;
+                document.getElementById('best-pushups').textContent = bestTotal;
+            } else {
+                document.getElementById('last-pushups').textContent = '--';
+                document.getElementById('best-pushups').textContent = '--';
+            }
+
+            // Streak
+            let streak = 0;
+            const today = new Date();
+            for (let i = 0; i < 365; i++) {
+                const checkDate = new Date(today);
+                checkDate.setDate(checkDate.getDate() - i);
+                const dateKey = checkDate.toISOString().split('T')[0];
+                if (entries.find(e => e.date === dateKey)) {
+                    streak++;
+                } else if (i > 0) {
+                    break;
+                }
+            }
+            document.getElementById('streak').textContent = streak;
+            document.getElementById('total-logs').textContent = entries.length;
+
+            // Charts
+            renderWeightChart(last7);
+            renderCalChart(last7);
+            renderPushupsChart(last7);
+        }
+
+        function renderWeightChart(data) {
+            const container = document.getElementById('weight-chart');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Log more days to see chart</div>';
+                return;
+            }
+
+            const weights = data.filter(e => e.weight).map(e => e.weight);
+            const maxW = Math.max(...weights, STARTING_WEIGHT);
+            const minW = Math.min(...weights) - 1;
+            const range = maxW - minW || 1;
+
+            data.forEach(e => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                const height = e.weight ? ((e.weight - minW) / range) * 100 : 0;
+                bar.innerHTML = `
+                    <div class="bar" style="height: ${height}px"></div>
+                    <span class="label">${e.date.slice(-2)}</span>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        function renderCalChart(data) {
+            const container = document.getElementById('cal-chart');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Log more days to see chart</div>';
+                return;
+            }
+
+            const cals = data.map(e => calcMacros(e.wraps || 0, e.proteins || [false,false,false], e.extraCals || 0).calories);
+            const maxC = Math.max(...cals, 2000);
+
+            data.forEach((e, i) => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                const height = (cals[i] / maxC) * 100;
+                bar.innerHTML = `
+                    <div class="bar amber" style="height: ${height}px"></div>
+                    <span class="label">${e.date.slice(-2)}</span>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        function renderPushupsChart(data) {
+            const container = document.getElementById('pushups-chart');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Log more days to see chart</div>';
+                return;
+            }
+
+            const totals = data.map(e => (e.pushups || [0,0,0]).reduce((a, b) => a + b, 0));
+            const maxP = Math.max(...totals, 30);
+
+            data.forEach((e, i) => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                const height = (totals[i] / maxP) * 100;
+                bar.innerHTML = `
+                    <div class="bar" style="height: ${height}px"></div>
+                    <span class="label">${e.date.slice(-2)}</span>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        function updateForecast() {
+            const last7 = entries.slice(-7);
+            const avgCals = last7.length > 0
+                ? Math.round(last7.reduce((sum, e) => sum + calcMacros(e.wraps || 0, e.proteins || [false,false,false], e.extraCals || 0).calories, 0) / last7.length)
+                : 1750;
+
+            document.getElementById('avg-cal-display').textContent = avgCals;
+
+            const dailyCals = useAverage ? avgCals : customCals;
+            const weightEntries = entries.filter(e => e.weight);
+            const startWeight = weightEntries.length > 0
+                ? weightEntries[weightEntries.length - 1].weight
+                : STARTING_WEIGHT;
+
+            const forecast = generateForecast(startWeight, dailyCals, 12);
+
+            // Summary
+            document.getElementById('forecast-start').textContent = forecast[0].weight.toFixed(1);
+            document.getElementById('forecast-end').textContent = forecast[12].weight.toFixed(1);
+            document.getElementById('forecast-loss').textContent = '-' + forecast[12].cumLoss.toFixed(1);
+
+            // Goal status
+            const goalWeek = forecast.find(f => f.weight <= GOAL_WEIGHT);
+            const goalStatusEl = document.getElementById('goal-status');
+            if (goalWeek) {
+                goalStatusEl.textContent = `Reached in ~${goalWeek.week} weeks!`;
+                goalStatusEl.className = 'status success';
+            } else {
+                goalStatusEl.textContent = `${(forecast[12].weight - GOAL_WEIGHT).toFixed(1)}kg to go after 12 weeks`;
+                goalStatusEl.className = 'status pending';
+            }
+
+            // Chart
+            const maxWeight = startWeight + 2;
+            const minWeight = Math.min(GOAL_WEIGHT - 5, forecast[12].weight - 2);
+            const weightRange = maxWeight - minWeight;
+
+            // Goal line position
+            const goalLinePos = ((maxWeight - GOAL_WEIGHT) / weightRange) * 100;
+            document.getElementById('goal-line').style.top = `${goalLinePos}%`;
+            document.getElementById('goal-line-label').style.top = `${goalLinePos}%`;
+
+            // SVG line
+            const svg = document.getElementById('forecast-svg');
+            const points = forecast.map((f, i) => {
+                const x = (i / 12) * 100;
+                const y = ((maxWeight - f.weight) / weightRange) * 100;
+                return `${x},${y}`;
+            }).join(' ');
+
+            svg.innerHTML = `
+                <polyline fill="none" stroke="#22c55e" stroke-width="2" points="${points}" vector-effect="non-scaling-stroke"/>
+                ${forecast.map((f, i) => {
+                    const x = (i / 12) * 100;
+                    const y = ((maxWeight - f.weight) / weightRange) * 100;
+                    return `<circle cx="${x}" cy="${y}" r="1.5" fill="#22c55e"/>`;
+                }).join('')}
+            `;
+
+            // Table
+            const tableContainer = document.getElementById('forecast-table');
+            tableContainer.innerHTML = forecast.slice(1).map(f => `
+                <div class="table-row">
+                    <span>${f.week}</span>
+                    <span class="weight">${f.weight.toFixed(1)}</span>
+                    <span class="loss">-${f.weeklyLoss.toFixed(2)}</span>
+                    <span>${Math.round(f.tdee)}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateHistory() {
+            const container = document.getElementById('history-list');
+
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="empty-state">No entries yet. Start logging!</div>';
+                return;
+            }
+
+            container.innerHTML = [...entries].reverse().map(entry => {
+                const macros = calcMacros(entry.wraps || 0, entry.proteins || [false,false,false], entry.extraCals || 0);
+                const pushupTotal = (entry.pushups || [0,0,0]).reduce((a, b) => a + b, 0);
+                return `
+                    <div class="history-item">
+                        <div class="top-row">
+                            <span class="date">${formatDate(entry.date)}</span>
+                            <div class="macros">
+                                <div class="cals">${macros.calories} cal</div>
+                                <div class="protein">${macros.protein}g protein</div>
+                            </div>
+                        </div>
+                        <div class="stats">
+                            <span><strong>${entry.weight ? entry.weight.toFixed(1) : '--'}kg</strong></span>
+                            <span>Push-ups: <strong>${pushupTotal}</strong></span>
+                            <span>Wraps: <strong>${entry.wraps || 0}/3</strong></span>
+                            <span>Energy: <strong>${entry.energy || '--'}/5</strong></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ PIN LOCK ============
+        let enteredPin = '';
+
+        function updatePinDisplay() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('filled', i < enteredPin.length);
+            });
+        }
+
+        function checkPin() {
+            if (enteredPin === CORRECT_PIN) {
+                document.getElementById('lock-screen').classList.add('hidden');
+                document.getElementById('app-container').style.display = 'block';
+                sessionStorage.setItem('unlocked', 'true');
+            } else {
+                document.getElementById('pin-error').classList.add('show');
+                enteredPin = '';
+                updatePinDisplay();
+                setTimeout(() => {
+                    document.getElementById('pin-error').classList.remove('show');
+                }, 1500);
+            }
+        }
+
+        function initPinPad() {
+            // Check if already unlocked this session
+            if (sessionStorage.getItem('unlocked') === 'true') {
+                document.getElementById('lock-screen').classList.add('hidden');
+                document.getElementById('app-container').style.display = 'block';
+                return;
+            }
+
+            document.querySelectorAll('.pin-pad button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const num = btn.dataset.num;
+
+                    if (num === 'del') {
+                        enteredPin = enteredPin.slice(0, -1);
+                        updatePinDisplay();
+                    } else if (num !== '' && enteredPin.length < 4) {
+                        enteredPin += num;
+                        updatePinDisplay();
+
+                        if (enteredPin.length === 4) {
+                            setTimeout(checkPin, 200);
+                        }
+                    }
+                });
+            });
+        }
+
+        // ============ INITIALIZATION ============
+        function init() {
+            // Set today's date
+            const today = new Date();
+            document.getElementById('today-date').textContent = today.toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            });
+
+            // Build protein addons
+            const addonsContainer = document.getElementById('protein-addons');
+            PROTEIN_ADDONS.forEach((addon, i) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.dataset.index = i;
+                div.innerHTML = `
+                    <div class="left">
+                        <div class="check"></div>
+                        <span>${addon.name}</span>
+                    </div>
+                    <span class="meta">${addon.calories} cal · ${addon.protein}g</span>
+                `;
+                div.addEventListener('click', () => {
+                    todayData.proteins[i] = !todayData.proteins[i];
+                    div.classList.toggle('checked', todayData.proteins[i]);
+                    updateTodayMacros();
+                });
+                addonsContainer.appendChild(div);
+            });
+
+            // Build energy scale
+            const energyContainer = document.getElementById('energy-scale');
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.addEventListener('click', () => {
+                    todayData.energy = i;
+                    energyContainer.querySelectorAll('button').forEach((b, idx) => {
+                        b.classList.toggle('selected', idx + 1 === i);
+                    });
+                });
+                energyContainer.appendChild(btn);
+            }
+
+            // Load data
+            loadData();
+            loadTodayEntry();
+
+            // Event listeners
+            document.getElementById('weight-input').addEventListener('input', (e) => {
+                todayData.weight = e.target.value;
+            });
+
+            ['pushups-1', 'pushups-2', 'pushups-3'].forEach((id, i) => {
+                document.getElementById(id).addEventListener('input', (e) => {
+                    todayData.pushups[i] = e.target.value;
+                });
+            });
+
+            ['squats-1', 'squats-2', 'squats-3'].forEach((id, i) => {
+                document.getElementById(id).addEventListener('input', (e) => {
+                    todayData.squats[i] = e.target.value;
+                });
+            });
+
+            document.getElementById('wraps-minus').addEventListener('click', () => {
+                if (todayData.wraps > 0) {
+                    todayData.wraps--;
+                    document.getElementById('wraps-count').textContent = todayData.wraps;
+                    updateWrapsMeta();
+                    updateTodayMacros();
+                }
+            });
+
+            document.getElementById('wraps-plus').addEventListener('click', () => {
+                if (todayData.wraps < 10) {
+                    todayData.wraps++;
+                    document.getElementById('wraps-count').textContent = todayData.wraps;
+                    updateWrapsMeta();
+                    updateTodayMacros();
+                }
+            });
+
+            document.getElementById('extra-cals').addEventListener('input', (e) => {
+                todayData.extraCals = e.target.value;
+                updateTodayMacros();
+            });
+
+            document.getElementById('notes').addEventListener('input', (e) => {
+                todayData.notes = e.target.value;
+            });
+
+            document.getElementById('save-btn').addEventListener('click', saveTodayEntry);
+
+            // Navigation
+            document.querySelectorAll('.nav button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const screen = btn.dataset.screen;
+                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+                    document.getElementById(`${screen}-screen`).classList.add('active');
+                    btn.classList.add('active');
+
+                    if (screen === 'dashboard') updateDashboard();
+                    if (screen === 'forecast') updateForecast();
+                    if (screen === 'history') updateHistory();
+                });
+            });
+
+            // Forecast controls
+            document.getElementById('use-avg-btn').addEventListener('click', () => {
+                useAverage = true;
+                document.getElementById('use-avg-btn').classList.add('active');
+                document.getElementById('use-custom-btn').classList.remove('active');
+                document.getElementById('slider-container').classList.add('hidden');
+                updateForecast();
+            });
+
+            document.getElementById('use-custom-btn').addEventListener('click', () => {
+                useAverage = false;
+                document.getElementById('use-custom-btn').classList.add('active');
+                document.getElementById('use-avg-btn').classList.remove('active');
+                document.getElementById('slider-container').classList.remove('hidden');
+                updateForecast();
+            });
+
+            document.getElementById('cal-slider').addEventListener('input', (e) => {
+                customCals = parseInt(e.target.value);
+                document.getElementById('slider-value').textContent = `${customCals} cal/day`;
+                updateForecast();
+            });
+
+            // Export/Import
+            document.getElementById('export-btn').addEventListener('click', () => {
+                const dataStr = JSON.stringify(entries, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cuttracker-export-${getTodayKey()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Exported!');
+            });
+
+            document.getElementById('import-btn').addEventListener('click', () => {
+                document.getElementById('import-file').click();
+            });
+
+            document.getElementById('import-file').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        if (Array.isArray(imported)) {
+                            entries = imported;
+                            entries.sort((a, b) => a.date.localeCompare(b.date));
+                            saveData();
+                            loadTodayEntry();
+                            showToast('Imported!');
+                        } else {
+                            showToast('Invalid file format');
+                        }
+                    } catch (err) {
+                        showToast('Error reading file');
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+        }
+
+        // Start
+        document.addEventListener('DOMContentLoaded', () => {
+            initPinPad();
+            init();
+        });
+
+        // Register service worker for offline use
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+            `)).catch(() => {});
+        }
+    </script>
+</body>
+</html>
