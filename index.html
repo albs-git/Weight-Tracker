@@ -1048,6 +1048,17 @@
             </header>
 
             <div class="card">
+                <h2>Starting Weight</h2>
+                <div class="toggle-row">
+                    <button id="use-latest-weight-btn" class="active">Use Latest (<span id="latest-weight-display">--</span>kg)</button>
+                    <button id="use-custom-weight-btn">Custom</button>
+                </div>
+                <div class="hidden" id="custom-weight-container" style="margin-top: 12px;">
+                    <input type="number" id="custom-start-weight" placeholder="132.0" step="0.1" inputmode="decimal">
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Daily Calories</h2>
                 <div class="toggle-row">
                     <button id="use-avg-btn" class="active">Use My Average (<span id="avg-cal-display">--</span>)</button>
@@ -1187,6 +1198,8 @@
         };
         let useAverage = true;
         let customCals = 1750;
+        let useLatestWeight = true;
+        let customStartWeight = STARTING_WEIGHT;
 
         // ============ HELPERS ============
         function getTodayKey() {
@@ -1510,9 +1523,13 @@
 
             const dailyCals = useAverage ? avgCals : customCals;
             const weightEntries = entries.filter(e => e.weight);
-            const startWeight = weightEntries.length > 0
+            const latestWeight = weightEntries.length > 0
                 ? weightEntries[weightEntries.length - 1].weight
                 : STARTING_WEIGHT;
+
+            document.getElementById('latest-weight-display').textContent = latestWeight.toFixed(1);
+
+            const startWeight = useLatestWeight ? latestWeight : (customStartWeight || latestWeight);
 
             const forecast = generateForecast(startWeight, dailyCals, 12);
 
@@ -1784,6 +1801,28 @@
             document.getElementById('cal-slider').addEventListener('input', (e) => {
                 customCals = parseInt(e.target.value);
                 document.getElementById('slider-value').textContent = `${customCals} cal/day`;
+                updateForecast();
+            });
+
+            // Starting weight controls
+            document.getElementById('use-latest-weight-btn').addEventListener('click', () => {
+                useLatestWeight = true;
+                document.getElementById('use-latest-weight-btn').classList.add('active');
+                document.getElementById('use-custom-weight-btn').classList.remove('active');
+                document.getElementById('custom-weight-container').classList.add('hidden');
+                updateForecast();
+            });
+
+            document.getElementById('use-custom-weight-btn').addEventListener('click', () => {
+                useLatestWeight = false;
+                document.getElementById('use-custom-weight-btn').classList.add('active');
+                document.getElementById('use-latest-weight-btn').classList.remove('active');
+                document.getElementById('custom-weight-container').classList.remove('hidden');
+                updateForecast();
+            });
+
+            document.getElementById('custom-start-weight').addEventListener('input', (e) => {
+                customStartWeight = parseFloat(e.target.value) || STARTING_WEIGHT;
                 updateForecast();
             });
 
