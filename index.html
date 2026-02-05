@@ -68,6 +68,70 @@
             margin-top: 4px;
         }
 
+        /* Date Picker */
+        .date-picker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .date-nav {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .date-nav:active {
+            background: var(--border);
+            transform: scale(0.95);
+        }
+
+        .date-nav:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .date-display {
+            position: relative;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-display:active {
+            background: var(--border);
+        }
+
+        #selected-date-text {
+            font-size: 15px;
+            color: var(--green);
+            font-weight: 500;
+        }
+
+        .hidden-date-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
         /* Navigation */
         .nav {
             position: fixed;
@@ -868,7 +932,14 @@
         <div id="log-screen" class="screen active">
             <header>
                 <h1>Daily Log</h1>
-                <p id="today-date"></p>
+                <div class="date-picker">
+                    <button class="date-nav" id="prev-day">‹</button>
+                    <div class="date-display" id="date-display">
+                        <span id="selected-date-text"></span>
+                        <input type="date" id="date-input" class="hidden-date-input">
+                    </div>
+                    <button class="date-nav" id="next-day">›</button>
+                </div>
             </header>
 
             <div class="summary-card">
@@ -1200,6 +1271,7 @@
         let customCals = 1750;
         let useLatestWeight = true;
         let customStartWeight = STARTING_WEIGHT;
+        let selectedDate = getTodayKey();
 
         // ============ HELPERS ============
         function getTodayKey() {
@@ -1276,20 +1348,62 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
         }
 
-        function loadTodayEntry() {
-            const todayKey = getTodayKey();
-            const existing = entries.find(e => e.date === todayKey);
+        function loadEntryForDate(dateKey) {
+            const existing = entries.find(e => e.date === dateKey);
             if (existing) {
                 todayData = { ...existing };
                 delete todayData.date;
+            } else {
+                // Reset to empty state
+                todayData = {
+                    weight: '',
+                    pushups: ['', '', ''],
+                    squats: ['', '', ''],
+                    wraps: 0,
+                    proteins: [false, false, false],
+                    extraCals: '',
+                    energy: null,
+                    notes: ''
+                };
             }
             updateLogUI();
+            updateDateDisplay();
+        }
+
+        function updateDateDisplay() {
+            const date = new Date(selectedDate + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dateObj = new Date(selectedDate + 'T00:00:00');
+            dateObj.setHours(0, 0, 0, 0);
+
+            let displayText;
+            const diffDays = Math.round((today - dateObj) / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                displayText = 'Today';
+            } else if (diffDays === 1) {
+                displayText = 'Yesterday';
+            } else if (diffDays === -1) {
+                displayText = 'Tomorrow';
+            } else {
+                displayText = date.toLocaleDateString('en-GB', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short'
+                });
+            }
+
+            document.getElementById('selected-date-text').textContent = displayText;
+            document.getElementById('date-input').value = selectedDate;
+
+            // Disable next button if selected date is today or future
+            document.getElementById('next-day').disabled = diffDays <= 0;
         }
 
         function saveTodayEntry() {
-            const todayKey = getTodayKey();
             const entry = {
-                date: todayKey,
+                date: selectedDate,
                 weight: parseFloat(todayData.weight) || null,
                 pushups: todayData.pushups.map(p => parseInt(p) || 0),
                 squats: todayData.squats.map(s => parseInt(s) || 0),
@@ -1300,7 +1414,7 @@
                 notes: todayData.notes
             };
 
-            const existingIndex = entries.findIndex(e => e.date === todayKey);
+            const existingIndex = entries.findIndex(e => e.date === selectedDate);
             if (existingIndex >= 0) {
                 entries[existingIndex] = entry;
             } else {
@@ -1673,12 +1787,33 @@
 
         // ============ INITIALIZATION ============
         function init() {
-            // Set today's date
-            const today = new Date();
-            document.getElementById('today-date').textContent = today.toLocaleDateString('en-GB', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long'
+            // Initialize date picker
+            selectedDate = getTodayKey();
+            updateDateDisplay();
+
+            document.getElementById('prev-day').addEventListener('click', () => {
+                const date = new Date(selectedDate + 'T00:00:00');
+                date.setDate(date.getDate() - 1);
+                selectedDate = date.toISOString().split('T')[0];
+                loadEntryForDate(selectedDate);
+            });
+
+            document.getElementById('next-day').addEventListener('click', () => {
+                const date = new Date(selectedDate + 'T00:00:00');
+                date.setDate(date.getDate() + 1);
+                const today = getTodayKey();
+                if (date.toISOString().split('T')[0] <= today) {
+                    selectedDate = date.toISOString().split('T')[0];
+                    loadEntryForDate(selectedDate);
+                }
+            });
+
+            document.getElementById('date-input').addEventListener('change', (e) => {
+                const newDate = e.target.value;
+                if (newDate && newDate <= getTodayKey()) {
+                    selectedDate = newDate;
+                    loadEntryForDate(selectedDate);
+                }
             });
 
             // Build protein addons
@@ -1718,7 +1853,7 @@
 
             // Load data
             loadData();
-            loadTodayEntry();
+            loadEntryForDate(selectedDate);
 
             // Event listeners
             document.getElementById('weight-input').addEventListener('input', (e) => {
@@ -1855,7 +1990,7 @@
                             entries = imported;
                             entries.sort((a, b) => a.date.localeCompare(b.date));
                             saveData();
-                            loadTodayEntry();
+                            loadEntryForDate(selectedDate);
                             showToast('Imported!');
                         } else {
                             showToast('Invalid file format');
