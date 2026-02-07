@@ -460,15 +460,27 @@
             background: var(--bg-tertiary);
             border-radius: 10px;
             padding: 12px;
+        }
+
+        .chart-container .chart-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-container .chart-y-labels {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            justify-content: space-between;
+            font-size: 9px;
+            color: var(--text-muted);
+            min-width: 28px;
+            text-align: right;
+            padding: 2px 0;
         }
 
         .chart-container .chart-svg-container {
             flex: 1;
-            height: 70px;
-            position: relative;
+            height: 60px;
         }
 
         .chart-container svg {
@@ -476,24 +488,13 @@
             height: 100%;
         }
 
-        .chart-container .chart-y-labels {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: absolute;
-            left: 12px;
-            top: 12px;
-            bottom: 30px;
-            font-size: 9px;
-            color: var(--text-muted);
-            pointer-events: none;
-        }
-
         .chart-container .chart-labels {
             display: flex;
             justify-content: space-between;
             font-size: 10px;
             color: var(--text-muted);
+            margin-top: 6px;
+            padding-left: 36px;
         }
 
         /* Forecast specific */
@@ -1600,15 +1601,17 @@
             const minLabel = Number.isInteger(minV) ? minV : minV.toFixed(1);
 
             container.innerHTML = `
-                <div class="chart-y-labels">
-                    <span>${maxLabel}${unit}</span>
-                    <span>${minLabel}${unit}</span>
-                </div>
-                <div class="chart-svg-container">
-                    <svg viewBox="0 0 100 60" preserveAspectRatio="none">
-                        <polyline fill="none" stroke="${color}" stroke-width="2" points="${points.join(' ')}" vector-effect="non-scaling-stroke"/>
-                        ${dots.map(d => d.replace('r="3"', 'r="2"')).join('')}
-                    </svg>
+                <div class="chart-wrapper">
+                    <div class="chart-y-labels">
+                        <span>${maxLabel}${unit}</span>
+                        <span>${minLabel}${unit}</span>
+                    </div>
+                    <div class="chart-svg-container">
+                        <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+                            <polyline fill="none" stroke="${color}" stroke-width="2" points="${points.join(' ')}" vector-effect="non-scaling-stroke"/>
+                            ${dots.map(d => d.replace('r="3"', 'r="2"')).join('')}
+                        </svg>
+                    </div>
                 </div>
                 <div class="chart-labels">
                     ${labels.map(l => `<span>${l}</span>`).join('')}
