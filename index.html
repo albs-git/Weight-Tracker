@@ -459,21 +459,39 @@
             margin-top: 16px;
             background: var(--bg-tertiary);
             border-radius: 10px;
-            padding: 16px;
-            height: 120px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chart-container .chart-svg-container {
+            flex: 1;
+            height: 70px;
             position: relative;
         }
 
         .chart-container svg {
             width: 100%;
             height: 100%;
-            overflow: visible;
+        }
+
+        .chart-container .chart-y-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            bottom: 30px;
+            font-size: 9px;
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
         .chart-container .chart-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 8px;
             font-size: 10px;
             color: var(--text-muted);
         }
@@ -1542,7 +1560,7 @@
             renderPushupsChart(last7);
         }
 
-        function renderLineChart(container, data, values, color = '#22c55e') {
+        function renderLineChart(container, data, values, color = '#22c55e', unit = '') {
             container.innerHTML = '';
 
             if (data.length === 0 || values.every(v => v === 0 || v === null)) {
@@ -1559,7 +1577,7 @@
             const maxV = Math.max(...validValues);
             const minV = Math.min(...validValues);
             const range = maxV - minV || 1;
-            const padding = range * 0.1;
+            const padding = range * 0.15;
 
             const points = [];
             const dots = [];
@@ -1572,17 +1590,26 @@
                 if (val !== null && val !== 0) {
                     const y = 100 - ((val - minV + padding) / (range + padding * 2)) * 100;
                     points.push(`${x},${y}`);
-                    dots.push(`<circle cx="${x}" cy="${y}" r="4" fill="${color}"/>`);
+                    dots.push(`<circle cx="${x}" cy="${y}" r="3" fill="${color}"/>`);
                 }
 
                 labels.push(e.date.slice(-2));
             });
 
+            const maxLabel = Number.isInteger(maxV) ? maxV : maxV.toFixed(1);
+            const minLabel = Number.isInteger(minV) ? minV : minV.toFixed(1);
+
             container.innerHTML = `
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <polyline fill="none" stroke="${color}" stroke-width="2" points="${points.join(' ')}" vector-effect="non-scaling-stroke"/>
-                    ${dots.join('')}
-                </svg>
+                <div class="chart-y-labels">
+                    <span>${maxLabel}${unit}</span>
+                    <span>${minLabel}${unit}</span>
+                </div>
+                <div class="chart-svg-container">
+                    <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+                        <polyline fill="none" stroke="${color}" stroke-width="2" points="${points.join(' ')}" vector-effect="non-scaling-stroke"/>
+                        ${dots.map(d => d.replace('r="3"', 'r="2"')).join('')}
+                    </svg>
+                </div>
                 <div class="chart-labels">
                     ${labels.map(l => `<span>${l}</span>`).join('')}
                 </div>
@@ -1592,19 +1619,19 @@
         function renderWeightChart(data) {
             const container = document.getElementById('weight-chart');
             const values = data.map(e => e.weight || null);
-            renderLineChart(container, data, values, '#22c55e');
+            renderLineChart(container, data, values, '#22c55e', '');
         }
 
         function renderCalChart(data) {
             const container = document.getElementById('cal-chart');
             const values = data.map(e => calcMacros(e.wraps || 0, e.proteins || [false,false,false], e.extraCals || 0).calories);
-            renderLineChart(container, data, values, '#f59e0b');
+            renderLineChart(container, data, values, '#f59e0b', '');
         }
 
         function renderPushupsChart(data) {
             const container = document.getElementById('pushups-chart');
             const values = data.map(e => (e.pushups || [0,0,0]).reduce((a, b) => a + b, 0));
-            renderLineChart(container, data, values, '#22c55e');
+            renderLineChart(container, data, values, '#22c55e', '');
         }
 
         function updateForecast() {
