@@ -461,34 +461,6 @@
             background: var(--bg-tertiary);
             border-radius: 10px;
             padding: 12px;
-            overflow: hidden;
-        }
-
-        .chart-container .chart-wrapper {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chart-container .chart-y-labels {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            font-size: 9px;
-            color: var(--text-muted);
-            min-width: 32px;
-            text-align: right;
-            padding: 2px 0;
-            flex-shrink: 0;
-        }
-
-        .chart-container .chart-svg-container {
-            flex: 1;
-            height: 60px;
-        }
-
-        .chart-container svg {
-            width: 100%;
-            height: 100%;
         }
 
         .chart-container .chart-labels {
@@ -497,7 +469,6 @@
             font-size: 10px;
             color: var(--text-muted);
             margin-top: 6px;
-            padding-left: 36px;
         }
 
         /* Forecast specific */
@@ -1583,39 +1554,31 @@
             const range = maxV - minV || 1;
             const padding = range * 0.15;
 
-            const points = [];
-            const dots = [];
             const labels = [];
+            const barWidth = 80 / data.length;
+            const bars = [];
+            const linePoints = [];
 
             data.forEach((e, i) => {
-                const x = data.length === 1 ? 50 : (i / (data.length - 1)) * 100;
+                const x = 10 + (i / (data.length - 1 || 1)) * 80;
                 const val = values[i];
 
                 if (val !== null && val !== 0) {
-                    const y = 100 - ((val - minV + padding) / (range + padding * 2)) * 100;
-                    points.push(`${x},${y}`);
-                    dots.push(`<circle cx="${x}" cy="${y}" r="3" fill="${color}"/>`);
+                    const normalizedHeight = (val - minV + padding) / (range + padding * 2);
+                    const barHeight = normalizedHeight * 90;
+                    const barX = x - barWidth / 2;
+                    bars.push(`<rect x="${barX}" y="${95 - barHeight}" width="${barWidth}" height="${barHeight}" fill="${color}" opacity="0.5" rx="1"/>`);
+                    linePoints.push(`${x},${95 - barHeight}`);
                 }
 
                 labels.push(e.date.slice(-2));
             });
 
-            const maxLabel = Number.isInteger(maxV) ? maxV : maxV.toFixed(1);
-            const minLabel = Number.isInteger(minV) ? minV : minV.toFixed(1);
-
             container.innerHTML = `
-                <div class="chart-wrapper">
-                    <div class="chart-y-labels">
-                        <span>${maxLabel}${unit}</span>
-                        <span>${minLabel}${unit}</span>
-                    </div>
-                    <div class="chart-svg-container">
-                        <svg viewBox="0 0 100 60" preserveAspectRatio="none">
-                            <polyline fill="none" stroke="${color}" stroke-width="2" points="${points.join(' ')}" vector-effect="non-scaling-stroke"/>
-                            ${dots.map(d => d.replace('r="3"', 'r="2"')).join('')}
-                        </svg>
-                    </div>
-                </div>
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:60px;">
+                    ${bars.join('')}
+                    <polyline fill="none" stroke="${color}" stroke-width="2" points="${linePoints.join(' ')}" vector-effect="non-scaling-stroke"/>
+                </svg>
                 <div class="chart-labels">
                     ${labels.map(l => `<span>${l}</span>`).join('')}
                 </div>
