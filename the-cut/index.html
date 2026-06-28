@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>THE CUT — private kitchen</title>
+<!-- Home-screen app behaviour -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Cut">
+<meta name="theme-color" content="#16120D">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#16120D;
+    --bg2:#1C1711;
+    --surface:#221C15;
+    --surface2:#28211A;
+    --paper:#ECE3D3;
+    --muted:#9A8E7B;
+    --faint:#6A6052;
+    --line:#332B22;
+    --line2:#42382C;
+    --ember:#E76F35;
+    --ember-dim:#B9572A;
+    --sage:#86A98C;
+    --sage-dim:#5E7C66;
+    --gold:#D8A24A;
+    --shadow:0 24px 60px -20px rgba(0,0,0,.7);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+  .mono{font-family:'Spline Sans Mono',ui-monospace,monospace;font-feature-settings:"tnum" 1}
+
+  /* ---------- Status bar cap (home-screen app) ---------- */
+  .sb-cap{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--bg);z-index:50}
+  /* ---------- Masthead ---------- */
+  header.mast{
+    position:relative;
+    padding:calc(38px + env(safe-area-inset-top)) 22px 26px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    background:
+      radial-gradient(120% 90% at 50% -20%, rgba(231,111,53,.10), transparent 60%),
+      linear-gradient(180deg,var(--bg2),var(--bg));
+  }
+  .mast .rule{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    color:var(--faint);font-size:11px;letter-spacing:.42em;text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .mast .rule::before,.mast .rule::after{content:"";height:1px;width:54px;background:var(--line2)}
+  .mast h1{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:clamp(46px,12vw,86px);
+    letter-spacing:.01em;
+    margin:0;
+    line-height:.92;
+    background:linear-gradient(180deg,#F6EEDD,#D9C9AC);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .mast .sub{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:500;
+    color:var(--ember);font-size:clamp(14px,3.6vw,18px);margin-top:10px;letter-spacing:.01em;
+  }
+  .mast .est{
+    margin-top:12px;color:var(--faint);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+  }
+
+  /* ---------- Tabs ---------- */
+  nav.tabs{
+    position:sticky;top:env(safe-area-inset-top);z-index:30;
+    display:flex;gap:5px;justify-content:center;flex-wrap:nowrap;
+    padding:9px 8px;
+    background:rgba(22,18,13,.86);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+    overflow-x:hidden;
+  }
+  .tab{
+    appearance:none;border:1px solid transparent;background:transparent;
+    color:var(--muted);font-family:'Inter';font-size:clamp(11px,3.1vw,13px);font-weight:600;
+    letter-spacing:.02em;padding:9px 8px;border-radius:999px;cursor:pointer;
+    white-space:nowrap;transition:all .18s ease;flex:1 1 0;min-width:0;text-align:center;
+  }
+  .tab:hover{color:var(--paper)}
+  .tab[aria-selected="true"]{
+    color:#1A140D;background:linear-gradient(180deg,#F0C58A,var(--ember));
+    border-color:var(--ember);box-shadow:0 6px 18px -8px rgba(231,111,53,.7);
+  }
+  .tab .ct{font-family:'Spline Sans Mono';font-size:11px;opacity:.6;margin-left:7px}
+  .tab[aria-selected="true"] .ct{opacity:.8}
+
+  main{max-width:760px;margin:0 auto;padding:26px 18px 160px}
+  .panel{display:none;animation:rise .4s cubic-bezier(.2,.7,.2,1)}
+  .panel.on{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ---------- Course headings ---------- */
+  .course{margin:34px 0 4px}
+  .course:first-child{margin-top:6px}
+  .course-h{
+    display:flex;align-items:baseline;gap:14px;margin-bottom:10px;
+  }
+  .course-h h2{
+    font-family:'Fraunces',serif;font-weight:600;font-size:25px;letter-spacing:.005em;margin:0;
+    color:var(--paper);white-space:nowrap;
+  }
+  .course-h .ln{flex:1;height:1px;background:var(--line2);transform:translateY(-3px)}
+  .course-h .tag{
+    font-family:'Spline Sans Mono';font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--faint);white-space:nowrap;
+  }
+  .subhead{
+    font-family:'Inter';font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ember-dim);margin:20px 0 8px;
+  }
+
+  /* ---------- Menu line item ---------- */
+  .item{
+    display:flex;align-items:flex-end;gap:8px;
+    width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    padding:9px 2px;color:inherit;border-radius:8px;transition:background .15s;
+  }
+  .item:hover{background:rgba(255,255,255,.02)}
+  .item:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+  .item .nm{font-family:'Inter';font-weight:500;font-size:15.5px;color:var(--paper);flex:0 1 auto;line-height:1.25}
+  .item .dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin:0 2px 4px 0;align-self:flex-end}
+  .v-true{background:var(--sage);box-shadow:0 0 0 3px rgba(134,169,140,.14)}
+  .v-false{background:transparent;border:1.5px solid var(--gold)}
+  .lead{flex:1 1 auto;border-bottom:1px dotted var(--line2);transform:translateY(-5px);min-width:18px}
+  .item .vals{flex:0 0 auto;display:flex;gap:12px;align-items:baseline}
+  .kcal{font-family:'Spline Sans Mono';font-weight:600;font-size:14px;color:var(--ember);letter-spacing:-.01em}
+  .kcal small{color:var(--ember-dim);font-size:10px;font-weight:400;margin-left:1px}
+  .prot{font-family:'Spline Sans Mono';font-weight:500;font-size:13px;color:var(--sage)}
+  .prot small{color:var(--sage-dim);font-size:10px;margin-left:1px}
+  .plus{
+    flex:0 0 auto;width:27px;height:27px;border-radius:50%;border:1px solid var(--line2);
+    background:var(--surface);color:var(--muted);font-size:17px;line-height:1;cursor:pointer;
+    display:grid;place-items:center;margin:0 0 2px 4px;transition:all .15s;padding:0;
+  }
+  .plus:hover{border-color:var(--ember);color:var(--ember);background:var(--surface2)}
+  .plus:active{transform:scale(.88)}
+  .plus.flash{background:var(--ember);color:#1A140D;border-color:var(--ember)}
+
+  /* ---------- Set menu cards ---------- */
+  .setcard{
+    background:linear-gradient(180deg,var(--surface),var(--bg2));
+    border:1px solid var(--line);border-radius:var(--r);
+    padding:20px 20px 18px;margin-bottom:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .setcard::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(var(--ember),var(--ember-dim))}
+  .setcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px}
+  .setcard h3{font-family:'Fraunces',serif;font-weight:600;font-size:23px;margin:0;line-height:1.05}
+  .setcard .note{font-family:'Fraunces';font-style:italic;color:var(--muted);font-size:13.5px;margin:3px 0 14px}
+  .setcard .band{
+    font-family:'Spline Sans Mono';font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--faint);border:1px solid var(--line2);border-radius:999px;padding:5px 9px;white-space:nowrap;flex:0 0 auto;
+  }
+  .comp{display:flex;align-items:baseline;gap:8px;padding:5px 0;font-size:14px}
+  .comp .c-nm{color:var(--paper);opacity:.9}
+  .comp .c-ld{flex:1;border-bottom:1px dotted var(--line);transform:translateY(-4px)}
+  .comp .c-k{font-family:'Spline Sans Mono';font-size:12.5px;color:var(--muted)}
+  .comp .c-p{font-family:'Spline Sans Mono';font-size:12px;color:var(--sage-dim);min-width:42px;text-align:right}
+  .settot{
+    display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:13px;
+    border-top:1px solid var(--line2);
+  }
+  .settot .lbl{font-family:'Inter';font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .settot .figs{display:flex;gap:16px;align-items:baseline}
+  .settot .bk{font-family:'Spline Sans Mono';font-weight:600;font-size:21px;color:var(--ember)}
+  .settot .bp{font-family:'Spline Sans Mono';font-weight:500;font-size:15px;color:var(--sage)}
+  .settot .bp small,.settot .bk small{font-size:10px;font-weight:400;opacity:.65}
+
+  /* ---------- Legend ---------- */
+  .legend{
+    display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:center;
+    margin:4px 0 22px;padding:11px 16px;background:var(--bg2);border:1px solid var(--line);
+    border-radius:999px;font-size:11.5px;color:var(--muted);
+  }
+  .legend span{display:flex;align-items:center;gap:7px}
+  .lg-dot{width:8px;height:8px;border-radius:50%}
+
+  .blurb{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 2px 18px;font-family:'Inter'}
+  .blurb b{color:var(--paper);font-weight:600}
+
+  /* ---------- Modal ---------- */
+  .scrim{
+    position:fixed;inset:0;z-index:60;background:rgba(10,8,5,.72);backdrop-filter:blur(6px);
+    display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;
+    transition:opacity .22s ease;
+  }
+  .scrim.on{opacity:1;pointer-events:auto}
+  .sheet{
+    width:100%;max-width:480px;background:linear-gradient(180deg,var(--surface2),var(--surface));
+    border:1px solid var(--line2);border-bottom:none;border-radius:20px 20px 0 0;
+    padding:8px 22px 26px;box-shadow:0 -20px 60px rgba(0,0,0,.6);
+    transform:translateY(20px);transition:transform .26s cubic-bezier(.2,.8,.2,1);
+  }
+  .scrim.on .sheet{transform:none}
+  @media(min-width:560px){
+    .scrim{align-items:center;padding:20px}
+    .sheet{border-radius:20px;border-bottom:1px solid var(--line2);transform:translateY(14px) scale(.98)}
+    .scrim.on .sheet{transform:none}
+  }
+  .grab{width:38px;height:4px;border-radius:99px;background:var(--line2);margin:8px auto 16px}
+  .sheet .badge{
+    display:inline-flex;align-items:center;gap:7px;font-family:'Spline Sans Mono';font-size:10px;
+    letter-spacing:.14em;text-transform:uppercase;padding:5px 10px;border-radius:999px;margin-bottom:12px;
+  }
+  .badge.verified{color:var(--sage);background:rgba(134,169,140,.1);border:1px solid var(--sage-dim)}
+  .badge.est{color:var(--gold);background:rgba(216,162,74,.08);border:1px solid rgba(216,162,74,.4)}
+  .sheet h4{font-family:'Fraunces',serif;font-weight:600;font-size:27px;margin:0 0 4px;line-height:1.06}
+  .sheet .cat{font-family:'Inter';font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:18px}
+  .macros{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .macro{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px 8px;text-align:center}
+  .macro .mv{font-family:'Spline Sans Mono';font-weight:600;font-size:20px;line-height:1}
+  .macro .mu{font-size:10px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+  .macro.kc .mv{color:var(--ember)} .macro.pr .mv{color:var(--sage)}
+  .macro.cb .mv{color:var(--paper)} .macro.ft .mv{color:var(--paper)}
+  .sheet .desc{color:var(--muted);font-size:13.5px;line-height:1.55;margin:0 0 18px;font-family:'Inter'}
+  .sheet .desc.empty{display:none}
+  .addbtn{
+    width:100%;border:none;border-radius:12px;padding:15px;cursor:pointer;
+    font-family:'Inter';font-weight:600;font-size:15px;letter-spacing:.02em;
+    background:linear-gradient(180deg,#F0C58A,var(--ember));color:#1A140D;transition:filter .15s,transform .1s;
+  }
+  .addbtn:hover{filter:brightness(1.06)} .addbtn:active{transform:scale(.985)}
+  .sheet .close{
+    position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;
+    border:1px solid var(--line2);background:var(--surface);color:var(--muted);font-size:18px;cursor:pointer;display:grid;place-items:center;
+  }
+  .sheet .close:hover{color:var(--paper);border-color:var(--muted)}
+  .sheet{position:relative}
+
+  /* ---------- Build a plate ---------- */
+  .bp-intro{margin-bottom:18px}
+  .bands{display:flex;gap:8px;margin-bottom:18px}
+  .bandbtn{
+    flex:1;border:1px solid var(--line2);background:var(--surface);color:var(--muted);
+    border-radius:12px;padding:11px 6px;cursor:pointer;text-align:center;transition:all .16s;
+  }
+  .bandbtn .bn{font-family:'Inter';font-weight:600;font-size:12.5px;display:block;color:var(--paper)}
+  .bandbtn .bt{font-family:'Spline Sans Mono';font-size:11px;color:var(--faint);margin-top:2px;display:block}
+  .bandbtn[aria-pressed="true"]{border-color:var(--ember);background:var(--surface2)}
+  .bandbtn[aria-pressed="true"] .bt{color:var(--ember)}
+
+  .check{
+    background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+    min-height:120px;padding:6px 4px;margin-bottom:16px;
+  }
+  .empty-check{
+    text-align:center;color:var(--faint);padding:46px 24px;font-family:'Fraunces';font-style:italic;font-size:15px;
+  }
+  .empty-check span{display:block;font-family:'Inter';font-style:normal;font-size:12.5px;margin-top:8px;letter-spacing:.04em}
+  .row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row .r-nm{flex:1;min-width:0}
+  .row .r-nm .rt{font-size:14px;color:var(--paper);font-weight:500;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .r-nm .rk{font-family:'Spline Sans Mono';font-size:11.5px;color:var(--faint);margin-top:2px;display:block}
+  .step{display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line2);border-radius:999px;padding:2px}
+  .step button{width:26px;height:26px;border:none;background:none;color:var(--paper);font-size:16px;cursor:pointer;border-radius:50%;line-height:1;display:grid;place-items:center}
+  .step button:hover{background:var(--surface2);color:var(--ember)}
+  .step .q{font-family:'Spline Sans Mono';font-size:13px;min-width:20px;text-align:center;color:var(--paper)}
+  .row .r-rm{width:28px;height:28px;border:none;background:none;color:var(--faint);cursor:pointer;font-size:15px;border-radius:50%;flex:0 0 auto}
+  .row .r-rm:hover{color:var(--ember);background:rgba(231,111,53,.08)}
+
+  /* sticky tab/bill */
+  .till{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:linear-gradient(180deg,rgba(28,23,17,.92),rgba(22,18,13,.98));
+    backdrop-filter:blur(14px);border-top:1px solid var(--line2);
+    padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+    transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .till.show{transform:none}
+  .till-inner{max-width:760px;margin:0 auto}
+  .gauge{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:11px;position:relative}
+  .gauge .fill{height:100%;width:0;border-radius:99px;transition:width .4s ease,background .3s}
+  .till-row{display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .till .totals{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+  .till .tk{font-family:'Spline Sans Mono';font-weight:600;font-size:24px;color:var(--ember);line-height:1}
+  .till .tk small{font-size:11px;color:var(--ember-dim);font-weight:400}
+  .till .macset{display:flex;gap:11px;align-items:baseline}
+  .till .mm{font-family:'Spline Sans Mono';font-size:12.5px;color:var(--muted)}
+  .till .mm b{color:var(--sage);font-weight:600}
+  .till .delta{font-family:'Spline Sans Mono';font-size:12px;margin-top:3px}
+  .till .clr{
+    border:1px solid var(--line2);background:var(--surface);color:var(--muted);
+    border-radius:999px;padding:9px 15px;font-family:'Inter';font-weight:600;font-size:12.5px;cursor:pointer;flex:0 0 auto;
+  }
+  .till .clr:hover{color:var(--ember);border-color:var(--ember-dim)}
+
+  /* supplements */
+  .tier{
+    background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--line);
+    border-radius:var(--r);padding:16px 18px;margin-bottom:12px;position:relative;
+  }
+  .tier .when{
+    display:flex;align-items:center;gap:10px;margin-bottom:11px;
+  }
+  .tier .when .tk{font-family:'Fraunces';font-weight:600;font-size:18px;color:var(--paper)}
+  .tier .when .clock{font-family:'Spline Sans Mono';font-size:11px;color:var(--ember);border:1px solid var(--ember-dim);border-radius:999px;padding:3px 9px;letter-spacing:.08em}
+  .supp-list{display:flex;flex-direction:column;gap:8px}
+  .supp{display:flex;align-items:baseline;gap:9px}
+  .supp .sd{width:6px;height:6px;border-radius:50%;background:var(--sage-dim);flex:0 0 auto;transform:translateY(-1px)}
+  .supp .sn{color:var(--paper);font-size:14.5px;font-weight:500}
+  .supp .sx{color:var(--faint);font-size:12.5px;font-family:'Spline Sans Mono'}
+  .tier .cue{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);color:var(--gold);font-size:12px;font-style:italic;font-family:'Fraunces'}
+
+  footer{text-align:center;color:var(--faint);font-size:11px;padding:30px 20px 10px;letter-spacing:.04em}
+  footer .mono{color:var(--faint)}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="sb-cap" aria-hidden="true"></div>
+
+<header class="mast">
+  <div class="rule">private kitchen</div>
+  <h1>THE CUT</h1>
+  <div class="sub">flame-grilled, high-protein, run by the numbers</div>
+  <div class="est">est. from 145kg &middot; now plating the descent</div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Menu sections">
+  <button class="tab" role="tab" aria-selected="true" data-tab="sets">Set Menus</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="carte">À la Carte</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="build">Build a Plate</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="supps">Supplements</button>
+</nav>
+
+<main>
+  <section class="panel on" id="sets" role="tabpanel"></section>
+  <section class="panel" id="carte" role="tabpanel"></section>
+  <section class="panel" id="build" role="tabpanel"></section>
+  <section class="panel" id="supps" role="tabpanel"></section>
+</main>
+
+<footer>
+  <div class="mono">THE CUT — a menu of one &middot; figures self-logged, not gospel</div>
+</footer>
+
+<!-- Modal -->
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="m-name">
+  <div class="sheet" id="sheet">
+    <button class="close" id="m-close" aria-label="Close">&times;</button>
+    <div class="grab"></div>
+    <div id="m-badge"></div>
+    <h4 id="m-name"></h4>
+    <div class="cat" id="m-cat"></div>
+    <div class="macros" id="m-macros"></div>
+    <p class="desc" id="m-desc"></p>
+    <button class="addbtn" id="m-add">Add to plate</button>
+  </div>
+</div>
+
+<!-- Till -->
+<div class="till" id="till">
+  <div class="till-inner">
+    <div class="gauge"><div class="fill" id="gauge-fill"></div></div>
+    <div class="till-row">
+      <div>
+        <div class="totals">
+          <span class="tk" id="till-k">0<small> kcal</small></span>
+          <span class="macset">
+            <span class="mm">P<b id="till-p">0</b></span>
+            <span class="mm">C <span id="till-c">0</span></span>
+            <span class="mm">F <span id="till-f">0</span></span>
+          </span>
+        </div>
+        <div class="delta" id="till-delta"></div>
+      </div>
+      <button class="clr" id="till-clear">Clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const ITEMS = {
+  // mains - sainsbury's
+  s_charg:{n:"Chargrilled breast 360g",k:342,p:79,c:3,f:5,v:false,cat:"Mains · Sainsbury's",d:"The dinner workhorse. Pack figure has drifted 342–410 across labels — pin it next shop."},
+  s_tikka:{n:"Tikka breast slices 360g",k:425,p:84,c:6,f:7,v:false,cat:"Mains · Sainsbury's",d:"Warm or cold. Heavier than the plain chargrilled, more flavour."},
+  s_sc:{n:"Salt & chilli thighs (pack)",k:250,p:35,c:4,f:12,v:false,cat:"Mains · Sainsbury's",d:"Fattier cut — flavour over lean. Good in a refeed."},
+  s_bbq:{n:"BBQ breast pack",k:244,p:35,c:6,f:6,v:false,cat:"Mains · Sainsbury's",d:"Pairs with the salt & chilli thighs for a ~494/70 lunch."},
+  s_fillet:{n:"Chicken mini fillets 240g",k:336,p:65,c:2,f:7,v:false,cat:"Mains · Sainsbury's",d:"Pre-session protein base. Digests clean."},
+  s_sand:{n:"Sage & onion stuffing sandwich",k:375,p:22,c:38,f:14,v:false,cat:"Mains · Sainsbury's",d:"Correct name: chicken with sage & onion stuffing. ~375 per pack."},
+  // mains - tesco/waitrose
+  t_bbq:{n:"Tesco BBQ chicken pack",k:220,p:40,c:2,f:5,v:false,cat:"Mains · Tesco / Waitrose",d:"Two packs = ~440/80. Cheap protein top-up."},
+  w_tikka:{n:"Waitrose tikka mini fillets",k:336,p:65,c:2,f:7,v:false,cat:"Mains · Tesco / Waitrose",d:"Same job as the Sainsbury's fillets."},
+  // seafood
+  prawn:{n:"Cooked prawns (per 100g)",k:75,p:20,c:0,f:1,v:false,cat:"Seafood",d:"The efficiency king — ~20g protein for ~75 kcal. Step the quantity 100/200/300g."},
+  kprawn:{n:"King prawns, garlic & parsley (pack)",k:130,p:18,c:1,f:6,v:false,cat:"Seafood",d:"The butter nudges fat up vs plain prawns."},
+  // carbs
+  rice:{n:"Ben's Golden Veg rice",k:250,p:5,c:48,f:4,v:false,cat:"Carbs & Sides",d:"Tied to the chicken. Pre-workout glycogen."},
+  spicerice:{n:"Spicy Mexican rice",k:350,p:10,c:66,f:7,v:false,cat:"Carbs & Sides",d:"Carb-dense — refeed and heavy training days."},
+  flat:{n:"Warburtons protein flatbread (each)",k:147,p:8,c:25,f:2.6,v:true,cat:"Carbs & Sides",d:"Label-verified. 4-pack = 588/32. The Balkan-plate carrier — scoop the prawns, dip the mayo."},
+  pot:{n:"Microwave potatoes (pouch)",k:250,p:6,c:50,f:1,v:false,cat:"Carbs & Sides",d:"No-cook. Already on the pre-workout list."},
+  mash:{n:"Mash (pouch)",k:280,p:4,c:52,f:6,v:false,cat:"Carbs & Sides",d:"Faster-digesting than chips in a one-hour pre-session window."},
+  // pots & dairy
+  kefir:{n:"Biotiful kefir pot",k:150,p:15,c:12,f:5,v:false,cat:"Pots & Dairy",d:"Daily staple — gut plus protein. Keep stocked."},
+  kvarg:{n:"Lindahls Kvarg",k:160,p:20,c:12,f:0,v:false,cat:"Pots & Dairy",d:"Fat-free protein topper to land the daily floor."},
+  graham:{n:"Graham's protein pouch",k:180,p:25,c:8,f:4,v:false,cat:"Pots & Dairy",d:"Light, amino top-up. Good mid-afternoon."},
+  arla:{n:"Arla protein yoghurt",k:180,p:20,c:10,f:3,v:false,cat:"Pots & Dairy",d:"Swap-in for the Kvarg."},
+  // bars
+  gren35:{n:"Grenade bar (35g)",k:140,p:13,c:13,f:6,v:true,cat:"Bars",d:"Locked to label. The small one — handy buffer-filler."},
+  gren60:{n:"Grenade Carb Killa (60g)",k:215,p:21,c:16,f:9,v:false,cat:"Bars",d:"Full-size. ~215 / 21g."},
+  bare:{n:"Barebells (55g)",k:200,p:20,c:16,f:8,v:false,cat:"Bars",d:"Interchangeable with Grenade for the sweet slot."},
+  fulfil:{n:"Fulfil bar",k:200,p:20,c:16,f:7,v:false,cat:"Bars",d:"Same tier as the others."},
+  // shakes
+  ufitB:{n:"UFit breakfast shake",k:210,p:28,c:13,f:3,v:false,cat:"Drinks · Shakes",d:"Breakfast slot. 28g protein, source of fibre."},
+  ufit25:{n:"UFit 25g",k:150,p:25,c:11,f:0.3,v:true,cat:"Drinks · Shakes",d:"Label-verified. Travel / emergency protein."},
+  ufit50:{n:"UFit 50g",k:250,p:50,c:6,f:2,v:true,cat:"Drinks · Shakes",d:"When you need a lot, fast. Poor satiety vs solid food though."},
+  // zero soft
+  coke0:{n:"Coke Zero",k:1,p:0,c:0,f:0,v:true,cat:"Drinks · Zero-sugar",d:"Free. Drink at will."},
+  pepsim:{n:"Pepsi Max",k:2,p:0,c:0,f:0,v:true,cat:"Drinks · Zero-sugar",d:"Free."},
+  diet:{n:"Diet Coke",k:1,p:0,c:0,f:0,v:true,cat:"Drinks · Zero-sugar",d:"Free."},
+  monster:{n:"Monster Ultra",k:10,p:0,c:2,f:0,v:false,cat:"Drinks · Zero-sugar",d:"Caffeine + near-zero cals. Watch timing vs the 3am wake."},
+  rbsf:{n:"Red Bull Sugarfree",k:5,p:0,c:1,f:0,v:false,cat:"Drinks · Zero-sugar",d:"~80mg caffeine."},
+  drp0:{n:"Dr Pepper Zero",k:2,p:0,c:0,f:0,v:true,cat:"Drinks · Zero-sugar",d:"Free."},
+  eagle:{n:"Golden Eagle *",k:120,p:0,c:30,f:0,v:false,cat:"Drinks · Zero-sugar",d:"* Not even slightly sugar-free. It has earned its place anyway and we will hear no arguments."},
+  // coffee
+  coffee:{n:"Black coffee",k:5,p:0,c:0,f:0,v:true,cat:"Drinks · Coffee",d:"AM carrier for the theanine + creatine stack."},
+  turk:{n:"Turkish coffee",k:10,p:0,c:1,f:0,v:false,cat:"Drinks · Coffee",d:"~50–65mg caffeine."},
+  espresso:{n:"Double espresso",k:10,p:0,c:0,f:0,v:true,cat:"Drinks · Coffee",d:"Two shots, ~120–130mg caffeine. The desk default."},
+  // nando's chicken
+  n_half:{n:"Half chicken",k:522,p:58,c:0,f:30,v:false,cat:"Nando's · Chicken",d:"Leanest protein hit on the menu. The default."},
+  n_whole:{n:"Whole chicken",k:1040,p:116,c:0,f:60,v:false,cat:"Nando's · Chicken",d:"For when the day's got proper room."},
+  n_wrap:{n:"Double chicken wrap",k:518,p:58,c:40,f:18,v:false,cat:"Nando's · Chicken",d:"Your way — no chilli jam, no mayo. Best protein-per-cal format."},
+  n_wing:{n:"Wings (each)",k:88,p:10,c:0,f:5,v:false,cat:"Nando's · Chicken",d:"The pick-at-it option. Lower protein-per-cal; you're guessing on count."},
+  n_thigh:{n:"Boneless thighs",k:450,p:42,c:2,f:28,v:false,cat:"Nando's · Chicken",d:"Tastiest cut, fattier, lower protein than the breast."},
+  // nando's sides
+  n_rice:{n:"Spicy rice",k:245,p:5,c:48,f:4,v:false,cat:"Nando's · Sides",d:""},
+  n_chips:{n:"Peri chips",k:370,p:5,c:48,f:17,v:false,cat:"Nando's · Sides",d:""},
+  n_garlic:{n:"Garlic bread",k:370,p:9,c:41,f:22,v:false,cat:"Nando's · Sides",d:"Eats more like a meal alongside the wrap than chips do."},
+  n_peas:{n:"Macho peas",k:150,p:9,c:18,f:5,v:false,cat:"Nando's · Sides",d:"Leaner side, bit of protein."},
+  n_corn:{n:"Corn on the cob",k:160,p:5,c:28,f:4,v:false,cat:"Nando's · Sides",d:""},
+  n_cmash:{n:"Creamy mash",k:210,p:4,c:30,f:8,v:false,cat:"Nando's · Sides",d:"Lowest-cal carb side — keeps a touch in reserve."},
+  n_hall:{n:"Halloumi sticks",k:290,p:13,c:12,f:22,v:false,cat:"Nando's · Sides",d:"Rich. Fat-heavy."},
+  // nando's dessert
+  n_soft:{n:"Bottomless soft serve (tub)",k:189,p:4,c:30,f:6,v:true,cat:"Nando's · Dessert",d:"Label-verified per filled tub. Bottomless when you eat in."},
+  // extras
+  mayo:{n:"Mayo (dollop, ~1 tbsp)",k:90,p:0,c:0,f:10,v:false,cat:"Extras",d:"Calorie-cheap luxury. The Balkan dip."},
+  vegeta:{n:"Vegeta seasoning",k:5,p:0,c:1,f:0,v:false,cat:"Extras",d:"Free flavour."},
+};
+
+const CARTE = [
+  {h:"Mains", tag:"protein", groups:[
+    {sub:"Sainsbury's", ids:["s_charg","s_tikka","s_sc","s_bbq","s_fillet","s_sand"]},
+    {sub:"Tesco / Waitrose", ids:["t_bbq","w_tikka"]},
+    {sub:"Seafood", ids:["prawn","kprawn"]},
+  ]},
+  {h:"Carbs & Sides", tag:"fuel", groups:[{ids:["rice","spicerice","flat","pot","mash"]}]},
+  {h:"Pots & Dairy", tag:"toppers", groups:[{ids:["kefir","kvarg","graham","arla"]}]},
+  {h:"Bars", tag:"sweet", groups:[{ids:["gren35","gren60","bare","fulfil"]}]},
+  {h:"Drinks", tag:"liquid", groups:[
+    {sub:"Shakes", ids:["ufitB","ufit25","ufit50"]},
+    {sub:"Zero-sugar soft drinks", ids:["coke0","pepsim","diet","monster","rbsf","drp0","eagle"]},
+    {sub:"Coffee", ids:["coffee","espresso","turk"]},
+  ]},
+  {h:"Nando's", tag:"the restaurant", groups:[
+    {sub:"Chicken", ids:["n_half","n_whole","n_wrap","n_wing","n_thigh"]},
+    {sub:"Sides", ids:["n_rice","n_chips","n_garlic","n_peas","n_corn","n_cmash","n_hall"]},
+    {sub:"Dessert", ids:["n_soft"]},
+  ]},
+  {h:"Extras", tag:"trimmings", groups:[{ids:["mayo","vegeta"]}]},
+];
+
+const SETS = [
+  {n:"Training Day", note:"Fuel the session — protein clear, carbs around the lift.", band:"target ~2,000",
+   c:[["s_charg",1],["rice",1],["prawn",2],["flat",4],["mayo",1],["ufitB",1],["gren60",1],["kvarg",1]]},
+  {n:"Rest Day", note:"Aggressive but the protein floor holds. Where the deficit lives.", band:"target ~1,400",
+   c:[["s_charg",1],["prawn",3],["rice",1],["kvarg",1],["graham",1]]},
+  {n:"Refeed Day", note:"Leptin / T3 / cortisol reset. Carb-heavy, landed on a heavy training day.", band:"~2,800–3,200",
+   c:[["n_half",1],["n_chips",1],["n_garlic",1],["s_charg",1],["spicerice",1],["gren60",2],["ufit50",1]]},
+  {n:"The Balkan Plate", note:"Scoop, dip, repeat. Eaten with your hands, the way it should be.", band:"a plate, not a day",
+   c:[["prawn",3],["flat",4],["mayo",1]]},
+  {n:"The Nando's", note:"Half + double wrap + two sides. Protein sorted before the sides even land.", band:"~1,780",
+   c:[["n_half",1],["n_wrap",1],["n_chips",1],["n_garlic",1]]},
+  {n:"Today's Plate", note:"28 Jun — the restart from 128. Pull day done, strength up.", band:"~1,700",
+   c:[["s_charg",1],["rice",1],["prawn",3],["flat",4],["mayo",1],["ufitB",1]]},
+];
+
+const SUPPS = [
+  {when:"Morning", clock:"with coffee", items:[
+    ["L-Theanine","200mg · Nutricost"],["Vitamin D3 + K2","4000 IU"],["Creatine","5g"],["L-Citrulline Malate","powder"]
+  ], cue:null},
+  {when:"Midday", clock:"~12pm", items:[
+    ["Tongkat Ali","Toniiq · eurycomanone-verified"]
+  ], cue:null},
+  {when:"Afternoon", clock:"4–5pm", items:[
+    ["Phosphatidylserine","300mg · Vinco, 2 caps"]
+  ], cue:"Take with dietary fat — it's a phospholipid."},
+  {when:"Dinner", clock:"9pm OMAD", items:[
+    ["Vitamin C + Zinc","Boots combo"],["Boron","10mg"],["Cod liver oil","—"]
+  ], cue:"Fat-soluble — needs fat on the plate. Body fat doesn't substitute."},
+  {when:"Pre-bed", clock:"30–60 min before", items:[
+    ["Magnesium glycinate","WeightWorld · 2–3 tabs"],["Glycine","3g"]
+  ], cue:"Aimed at the ~3am cortisol wake."},
+  {when:"Pre-workout", clock:"training days", items:[
+    ["Bulk Dope — caffeinated","sessions before ~4pm"],["Bulk Dope — caffeine-free","sessions after ~4pm"]
+  ], cue:"The cutoff protects your sleep. Non-negotiable."},
+];
+
+const BANDS = {rest:{label:"Rest",t:1400}, training:{label:"Training",t:2000}, refeed:{label:"Refeed",t:2900}};
+
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s);
+const ce=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e;};
+const fmt=n=>Number.isInteger(n)?n:n.toFixed(1);
+function sumComp(arr){let k=0,p=0,c=0,f=0;arr.forEach(([id,q])=>{const it=ITEMS[id];k+=it.k*q;p+=it.p*q;c+=it.c*q;f+=it.f*q;});return{k:Math.round(k),p:Math.round(p),c:Math.round(c),f:Math.round(f)};}
+
+/* ============ RENDER: SETS ============ */
+function renderSets(){
+  const wrap=$("#sets");
+  const blurb=ce("p","blurb");
+  blurb.innerHTML="Assembled plates and day templates from the project. Tap any component on the <b>À la Carte</b> tab to see it on its own or drop it into a plate.";
+  wrap.appendChild(blurb);
+  SETS.forEach(s=>{
+    const t=sumComp(s.c);
+    const card=ce("div","setcard");
+    const top=ce("div","top");
+    const h=ce("h3");h.textContent=s.n;
+    const band=ce("div","band");band.textContent=s.band;
+    top.append(h,band);
+    const note=ce("div","note");note.textContent=s.note;
+    card.append(top,note);
+    s.c.forEach(([id,q])=>{
+      const it=ITEMS[id];
+      const r=ce("div","comp");
+      const nm=ce("span","c-nm");nm.textContent=(q>1?q+"× ":"")+it.n.replace(" (per 100g)","").replace(" (each)","");
+      const ld=ce("span","c-ld");
+      const k=ce("span","c-k");k.className="c-k mono";k.textContent=(it.k*q)+" kcal";
+      const p=ce("span","c-p");p.className="c-p mono";p.textContent=(it.p*q)+"g P";
+      r.append(nm,ld,k,p);card.appendChild(r);
+    });
+    const tot=ce("div","settot");
+    const lbl=ce("span","lbl");lbl.textContent="The bill";
+    const figs=ce("div","figs");
+    figs.innerHTML=`<span class="bk mono">${t.k}<small> kcal</small></span><span class="bp mono">${t.p}<small>g protein</small></span>`;
+    tot.append(lbl,figs);card.appendChild(tot);
+    wrap.appendChild(card);
+  });
+}
+
+/* ============ RENDER: CARTE ============ */
+function itemLine(id){
+  const it=ITEMS[id];
+  const row=ce("div");row.style.display="flex";row.style.alignItems="flex-end";
+  const btn=ce("button","item");
+  btn.setAttribute("aria-label",it.n+", "+it.k+" calories, "+it.p+" grams protein");
+  const dot=ce("span","dot "+(it.v?"v-true":"v-false"));
+  const nm=ce("span","nm");nm.textContent=it.n;
+  const lead=ce("span","lead");
+  const vals=ce("span","vals");
+  vals.innerHTML=`<span class="kcal">${it.k}<small>kcal</small></span><span class="prot">${it.p}<small>g</small></span>`;
+  btn.append(dot,nm,lead,vals);
+  btn.addEventListener("click",()=>openModal(id));
+  const plus=ce("button","plus");plus.textContent="+";plus.setAttribute("aria-label","Add "+it.n+" to plate");
+  plus.addEventListener("click",e=>{e.stopPropagation();addToPlate(id);plus.classList.add("flash");setTimeout(()=>plus.classList.remove("flash"),260);});
+  row.append(btn,plus);
+  return row;
+}
+function renderCarte(){
+  const wrap=$("#carte");
+  const legend=ce("div","legend");
+  legend.innerHTML=`<span><span class="lg-dot" style="background:var(--sage);box-shadow:0 0 0 3px rgba(134,169,140,.14)"></span>label-verified</span>
+    <span><span class="lg-dot" style="border:1.5px solid var(--gold)"></span>estimated — pin later</span>
+    <span style="color:var(--faint)">tap a dish for the full breakdown</span>`;
+  wrap.appendChild(legend);
+  CARTE.forEach(course=>{
+    const c=ce("div","course");
+    const ch=ce("div","course-h");
+    const h=ce("h2");h.textContent=course.h;
+    const ln=ce("span","ln");
+    const tag=ce("span","tag");tag.textContent=course.tag;
+    ch.append(h,ln,tag);c.appendChild(ch);
+    course.groups.forEach(g=>{
+      if(g.sub){const sh=ce("div","subhead");sh.textContent=g.sub;c.appendChild(sh);}
+      g.ids.forEach(id=>c.appendChild(itemLine(id)));
+    });
+    wrap.appendChild(c);
+  });
+}
+
+/* ============ MODAL ============ */
+let lastFocus=null, modalItem=null;
+function openModal(id){
+  const it=ITEMS[id];modalItem=id;lastFocus=document.activeElement;
+  $("#m-badge").innerHTML=it.v
+    ? `<span class="badge verified">● label-verified</span>`
+    : `<span class="badge est">○ estimated</span>`;
+  $("#m-name").textContent=it.n;
+  $("#m-cat").textContent=it.cat;
+  $("#m-macros").innerHTML=`
+    <div class="macro kc"><div class="mv mono">${it.k}</div><div class="mu">kcal</div></div>
+    <div class="macro pr"><div class="mv mono">${fmt(it.p)}</div><div class="mu">protein</div></div>
+    <div class="macro cb"><div class="mv mono">${fmt(it.c)}</div><div class="mu">carbs</div></div>
+    <div class="macro ft"><div class="mv mono">${fmt(it.f)}</div><div class="mu">fat</div></div>`;
+  const desc=$("#m-desc");desc.textContent=it.d||"";desc.classList.toggle("empty",!it.d);
+  $("#scrim").classList.add("on");
+  document.body.style.overflow="hidden";
+  $("#m-close").focus();
+}
+function closeModal(){
+  $("#scrim").classList.remove("on");
+  document.body.style.overflow="";
+  if(lastFocus)lastFocus.focus();
+}
+$("#m-close").addEventListener("click",closeModal);
+$("#scrim").addEventListener("click",e=>{if(e.target===$("#scrim"))closeModal();});
+$("#m-add").addEventListener("click",()=>{addToPlate(modalItem);closeModal();goTab("build");});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#scrim").classList.contains("on"))closeModal();});
+
+/* ============ BUILD A PLATE ============ */
+let plate={};       // id -> qty
+let band="training";
+
+function renderBuildShell(){
+  const wrap=$("#build");
+  const intro=ce("p","blurb bp-intro");
+  intro.innerHTML="Tap dishes to drop them in. Steppers handle portions (prawns 100/200/300g, extra rice, doubles). The running tab sits at the bottom with a gauge against your target band.";
+  wrap.appendChild(intro);
+  const bands=ce("div","bands");
+  Object.entries(BANDS).forEach(([key,b])=>{
+    const btn=ce("button","bandbtn");
+    btn.setAttribute("aria-pressed",key===band);
+    btn.dataset.band=key;
+    btn.innerHTML=`<span class="bn">${b.label}</span><span class="bt mono">~${b.t.toLocaleString()}</span>`;
+    btn.addEventListener("click",()=>{band=key;document.querySelectorAll(".bandbtn").forEach(x=>x.setAttribute("aria-pressed",x.dataset.band===key));updateTill();});
+    bands.appendChild(btn);
+  });
+  wrap.appendChild(bands);
+  const check=ce("div","check");check.id="check";
+  wrap.appendChild(check);
+  renderCheck();
+}
+function addToPlate(id){plate[id]=(plate[id]||0)+1;renderCheck();updateTill();}
+function setQty(id,d){plate[id]=(plate[id]||0)+d;if(plate[id]<=0)delete plate[id];renderCheck();updateTill();}
+function renderCheck(){
+  const check=$("#check");if(!check)return;check.innerHTML="";
+  const ids=Object.keys(plate);
+  if(!ids.length){
+    check.innerHTML=`<div class="empty-check">Nothing on the plate yet.<span>Tap a dish to start building.</span></div>`;
+    return;
+  }
+  ids.forEach(id=>{
+    const it=ITEMS[id],q=plate[id];
+    const row=ce("div","row");
+    const nm=ce("div","r-nm");
+    nm.innerHTML=`<span class="rt">${it.n.replace(" (per 100g)"," ").replace(" (each)","")}</span><span class="rk mono">${it.k*q} kcal · ${fmt(it.p*q)}g P</span>`;
+    const step=ce("div","step");
+    const minus=ce("button");minus.textContent="−";minus.setAttribute("aria-label","One fewer "+it.n);minus.onclick=()=>setQty(id,-1);
+    const qspan=ce("span","q mono");qspan.textContent=q;
+    const plus=ce("button");plus.textContent="+";plus.setAttribute("aria-label","One more "+it.n);plus.onclick=()=>setQty(id,1);
+    step.append(minus,qspan,plus);
+    const rm=ce("button","r-rm");rm.innerHTML="&times;";rm.setAttribute("aria-label","Remove "+it.n);rm.onclick=()=>{delete plate[id];renderCheck();updateTill();};
+    row.append(nm,step,rm);
+    check.appendChild(row);
+  });
+}
+function updateTill(){
+  const ids=Object.keys(plate);
+  const till=$("#till");
+  if(!ids.length){till.classList.remove("show");return;}
+  till.classList.add("show");
+  let k=0,p=0,c=0,f=0;
+  ids.forEach(id=>{const it=ITEMS[id],q=plate[id];k+=it.k*q;p+=it.p*q;c+=it.c*q;f+=it.f*q;});
+  k=Math.round(k);p=Math.round(p);c=Math.round(c);f=Math.round(f);
+  $("#till-k").innerHTML=`${k.toLocaleString()}<small> kcal</small>`;
+  $("#till-p").textContent=p;$("#till-c").textContent=c;$("#till-f").textContent=f;
+  const t=BANDS[band].t;
+  const pct=Math.min(k/t,1)*100;
+  const fill=$("#gauge-fill");
+  fill.style.width=pct+"%";
+  const over=k>t*1.04, near=k>=t*0.9&&k<=t*1.04;
+  fill.style.background=over?"linear-gradient(90deg,var(--ember-dim),var(--ember))":near?"linear-gradient(90deg,var(--sage-dim),var(--sage))":"linear-gradient(90deg,#6E9C86,#86A98C)";
+  const diff=k-t;
+  const dl=$("#till-delta");
+  if(near){dl.textContent="● on band for "+BANDS[band].label.toLowerCase();dl.style.color="var(--sage)";}
+  else if(diff<0){dl.textContent=Math.abs(diff).toLocaleString()+" kcal under "+BANDS[band].label.toLowerCase()+" target";dl.style.color="var(--muted)";}
+  else{dl.textContent="+"+diff.toLocaleString()+" kcal over "+BANDS[band].label.toLowerCase()+" target";dl.style.color="var(--ember)";}
+}
+$("#till-clear").addEventListener("click",()=>{plate={};renderCheck();updateTill();});
+
+/* ============ SUPPLEMENTS ============ */
+function renderSupps(){
+  const wrap=$("#supps");
+  const blurb=ce("p","blurb");
+  blurb.innerHTML="The stack by timing tier. No macros here — just what, how much, and when. The fat-soluble and caffeine-timing cues are the ones that actually matter.";
+  wrap.appendChild(blurb);
+  SUPPS.forEach(tier=>{
+    const t=ce("div","tier");
+    const when=ce("div","when");
+    when.innerHTML=`<span class="tk">${tier.when}</span><span class="clock mono">${tier.clock}</span>`;
+    t.appendChild(when);
+    const list=ce("div","supp-list");
+    tier.items.forEach(([n,x])=>{
+      const s=ce("div","supp");
+      s.innerHTML=`<span class="sd"></span><span class="sn">${n}</span><span class="sx">${x}</span>`;
+      list.appendChild(s);
+    });
+    t.appendChild(list);
+    if(tier.cue){const cue=ce("div","cue");cue.textContent=tier.cue;t.appendChild(cue);}
+    wrap.appendChild(t);
+  });
+}
+
+/* ============ TABS ============ */
+function goTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.tab===name));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id===name));
+  window.scrollTo({top:0,behavior:"instant"in window?"instant":"auto"});
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>goTab(t.dataset.tab)));
+
+/* ============ INIT ============ */
+renderSets();
+renderCarte();
+renderBuildShell();
+renderSupps();
+updateTill();
+</script>
+</body>
+</html>
